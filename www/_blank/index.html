@@ -177,10 +177,13 @@ var m = {
     marker_group: { 'all': [] },
     layer_group: {},
     slugify: function(text) {
-        return text
-            .toLowerCase()
-            .replace(/[^\w ]+/g,'')
-            .replace(/ +/g,'-');
+        // from https://gist.github.com/mathewbyrne/1280286
+        return text.toString().toLowerCase()
+            .replace(/\s+/g, '-')           // Replace spaces with -
+            .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+            .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+            .replace(/^-+/, '')             // Trim - from start of text
+            .replace(/-+$/, '');            // Trim - from end of text
     },
     init: function()
     {
@@ -193,10 +196,7 @@ var m = {
             len = data;
 			m.map.addLayer(L.geoJson(data));
         });
-        //this.map.addLayer(this.clustergroup);
 
-        //this.map.fitBounds(this.marker_group);
-        //this.map.addLayer(this.markers);
     }
 }
 m.init();
