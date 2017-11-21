@@ -165,9 +165,11 @@
 <script src="//interactive.nydailynews.com/js/leaflet/1.2.0/leaflet.js"></script>
 <script>
 var center_point = [39.5,-98.35];
+// THE MAP MANAGER
 var m = {
     config: {
         dev: document.location.hash === '#dev' ? 1 : 0,
+		json: '../geojson/us-states.json',
     },
     map: L.map('quiz-map', { minZoom: 2, maxZoom: 9, zoomControl:true, scrollWheelZoom:false }).setView(center_point, 3),
     markers: [],
@@ -212,7 +214,7 @@ var m = {
             attribution: this.attribution,
             maxZoom: 16
         }).addTo(this.map);
-        $.getJSON('../geojson/us-states.json', function(data) {
+        $.getJSON(this.config.json, function(data) {
             len = data;
 			L.geoJson(data, { 
 				onEachFeature: function (feature, layer) { 
@@ -229,7 +231,88 @@ m.init();
 
 // THE RESPONSE MANAGER
 r = {
+    config: {
+        dev: document.location.hash === '#dev' ? 1 : 0,
+		log_url: '',
+		slug: '',
+    },
+	update_config: function (config) {
+        // Take an external config object and update this config object.
+        for ( var key in config )
+        {
+            if ( config.hasOwnProperty(key) )
+            {
+                this.config[key] = config[key];
+            }
+        }
+	},
+	to_ordinal: function(n)
+	{
+		// From https://gist.github.com/jlbruno/1535691
+	   var s = ["th","st","nd","rd"],
+		   v = n%100;
+	   return n+(s[(v-20)%10]||s[v]||s[0]);
+	},
+	refresh_ads: function() {
+        if ( typeof googletag !== 'undefined' ) googletag.pubads().refresh();
+        if ( typeof PARSELY !== 'undefinted' ) PARSELY.beacon.trackPageView({ url: document.location.href, urlref: document.location.href, js: 1 });
+	},
+    slugify: function (text) {
+        // from https://gist.github.com/mathewbyrne/1280286
+        return text.toString().toLowerCase()
+            .replace(/\s+/g, '-')           // Replace spaces with -
+            .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+            .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+            .replace(/^-+/, '')             // Trim - from start of text
+            .replace(/-+$/, '');            // Trim - from end of text
+    },
+    tweet_link: function(text) {
+        // Given the words to put in a tweet, return markup suitable for a tweet-this link.
+        var url = document.location.origin + document.location.pathname;
+        return '<span><a href="https://twitter.com/intent/tweet?text=' + text + '&amp;url=' + url + '&amp;via=NYDNi&amp;related=NYDNSports,NYDailyNews" target="_blank">Tweet this</a></span>';
+    },
+    to_percent: function(val) {
+        // Turn a float value between 0 and 1.0 into a percent value to one decimal place, 0.0% to 100.0%.
+        return Math.round(val*1000)/10;
+    }, 
+    rando: function()
+    {
+        var text = "";
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+        for ( var i=0; i < 8; i++ )
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+        return text;
+    },
+    log_start: function ()
+    {
+        // Keep track of how many people start a quiz.
+        var url = this.config.log_url + '?slug=' + this.config.slug + '&start=1&rando=' + this.rando() + '&callback=';
+        var jqxhr = $.getJSON( url, function(data) {} );
+    },
+	log_answer: function() {
+        var correct = this.correct_count;
+        var params = '?slug=' + this.config.slug + '&correct=' + correct + '&rando=' + this.rando() + '&callback=';
+        var jqxhr = $.getJSON( this.config.log_url + params, function(data) 
+        {
+		});
+	},
+	show_answer: function() {
+	},
+	init: function() {
+        // Config handling. External config objects must be named quiz_config
+        if ( typeof quiz_config !== 'undefined' ) { this.update_config(quiz_config); }
+	}
 };
+function ready(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading"){
+        fn();
+    } else {
+        document.addEventListener('DOMContentLoaded', fn);
+    }
+}
+ready(function(){ r.init(); });
 </script>
 
 <!-- CONTENT-END -->
