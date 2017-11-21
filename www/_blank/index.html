@@ -173,8 +173,6 @@ var m = {
     markers: [],
     tile: 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png',
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-    current_layer: 'all',
-    marker_group: { 'all': [] },
     layer_group: {},
     slugify: function(text) {
         // from https://gist.github.com/mathewbyrne/1280286
@@ -185,21 +183,53 @@ var m = {
             .replace(/^-+/, '')             // Trim - from start of text
             .replace(/-+$/, '');            // Trim - from end of text
     },
+	on_event: function(feature, layer) {
+            layer.on({
+                click: function(e) { console.log('hi'); m.info.update(e, this.feature.properties); },
+                //mouseover: function(e) { m.info.update(e, this.feature.properties);                   },
+                //mouseout: function(e) { m.info.update(e); }
+            });
+	},
+	layer_options: {
+		style: {
+			resting: { 
+					weight: 3,
+					fillOpacity: 0.2,
+					color: '#00F',
+					fillColor: '#00F'
+			},
+			active: { 
+					weight: 5,
+					fillOpacity: 0.2,
+					color: '#F00',
+					fillColor: '#F00'
+			}
+		}
+	},
     init: function()
     {
         L.tileLayer(this.tile, {
             attribution: this.attribution,
             maxZoom: 16
         }).addTo(this.map);
-        this.marker_group = L.layerGroup().addTo(this.map);
         $.getJSON('../geojson/us-states.json', function(data) {
             len = data;
-			m.map.addLayer(L.geoJson(data));
+			L.geoJson(data, { 
+				onEachFeature: function (feature, layer) { 
+					layer.on({
+						click: function(e) { console.log('hi'); m.info.update(e, this.feature.properties); }
+					});},
+				style: m.layer_options.style.resting 
+			}).addTo(m.map);
         });
 
     }
 }
 m.init();
+
+// THE RESPONSE MANAGER
+r = {
+};
 </script>
 
 <!-- CONTENT-END -->
