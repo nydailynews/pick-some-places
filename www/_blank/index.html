@@ -231,10 +231,13 @@ m.init();
 
 // THE RESPONSE MANAGER
 r = {
+	guesses: [],
+	correct: [],
     config: {
         dev: document.location.hash === '#dev' ? 1 : 0,
-		log_url: '',
+		log_url: '../handler/',
 		slug: '',
+		answers: [],
     },
 	update_config: function (config) {
         // Take an external config object and update this config object.
@@ -246,8 +249,7 @@ r = {
             }
         }
 	},
-	to_ordinal: function(n)
-	{
+	to_ordinal: function(n) {
 		// From https://gist.github.com/jlbruno/1535691
 	   var s = ["th","st","nd","rd"],
 		   v = n%100;
@@ -258,7 +260,7 @@ r = {
         if ( typeof PARSELY !== 'undefinted' ) PARSELY.beacon.trackPageView({ url: document.location.href, urlref: document.location.href, js: 1 });
 	},
     slugify: function (text) {
-        // from https://gist.github.com/mathewbyrne/1280286
+        // From https://gist.github.com/mathewbyrne/1280286
         return text.toString().toLowerCase()
             .replace(/\s+/g, '-')           // Replace spaces with -
             .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
@@ -269,7 +271,7 @@ r = {
     tweet_link: function(text) {
         // Given the words to put in a tweet, return markup suitable for a tweet-this link.
         var url = document.location.origin + document.location.pathname;
-        return '<span><a href="https://twitter.com/intent/tweet?text=' + text + '&amp;url=' + url + '&amp;via=NYDNi&amp;related=NYDNSports,NYDailyNews" target="_blank">Tweet this</a></span>';
+        return '<span><a href="https://twitter.com/intent/tweet?text=' + text + '&amp;url=' + url + '&amp;via=NYDNi&amp;related=NYDNi,NYDailyNews" target="_blank">Tweet this</a></span>';
     },
     to_percent: function(val) {
         // Turn a float value between 0 and 1.0 into a percent value to one decimal place, 0.0% to 100.0%.
@@ -285,14 +287,24 @@ r = {
 
         return text;
     },
-    log_start: function ()
+    log_start: function()
     {
         // Keep track of how many people start a quiz.
         var url = this.config.log_url + '?slug=' + this.config.slug + '&start=1&rando=' + this.rando() + '&callback=';
         var jqxhr = $.getJSON( url, function(data) {} );
     },
+	check_answer: function() {
+		// Loop through the guesses and compare against the answer(s).
+		// If there's a match, add the correct answer to the correct array.
+		var l = this.guesses.length;
+		for ( var i = 0; i < l; i ++ ) {
+			if ( this.config.answers.indexOf(this.guesses[i]) !== -1 ) {
+				this.correct.push(this.guesses[i]);
+			}
+		}
+	},
 	log_answer: function() {
-        var correct = this.correct_count;
+        var correct = this.correct.length;
         var params = '?slug=' + this.config.slug + '&correct=' + correct + '&rando=' + this.rando() + '&callback=';
         var jqxhr = $.getJSON( this.config.log_url + params, function(data) 
         {
@@ -302,9 +314,12 @@ r = {
 	},
 	init: function() {
         // Config handling. External config objects must be named quiz_config
-        if ( typeof quiz_config !== 'undefined' ) { this.update_config(quiz_config); }
+        if ( typeof quiz_config !== 'undefined' ) this.update_config(quiz_config);
 	}
 };
+
+
+
 function ready(fn) {
     if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading"){
         fn();
