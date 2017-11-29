@@ -220,9 +220,23 @@ var m = {
         $.getJSON(this.config.json, function(data) {
                 L.geoJson(data, { 
                     onEachFeature: function (feature, layer) { 
-                        console.log("are you there?", layer);
                         layer.on({
-                            click: function(e) { console.log('hi', e, feature); }
+                            click: function(e) {
+                                console.log('hi', e, feature);
+                                var g = feature.properties.name;
+                                if ( r.guesses.indexOf(g) >= 0 ) {
+                                    // We have a guess to remove
+                                    r.guesses.splice(r.guesses.indexOf(g), 1);
+                                    layer.setStyle(m.layer_options.style.resting);
+                                }
+                                else if ( r.guesses.length < 3 ) {
+                                    r.guesses.push(feature.properties.name);
+                                    layer.setStyle(m.layer_options.style.active);
+                                }
+                                else if ( r.guesses.length >= 3 ) {
+                                    // Do nothing, we've hit maximum guesses.
+                                }
+                            }
                         });},
                     style: m.layer_options.style.resting 
                 }).addTo(m.map);
