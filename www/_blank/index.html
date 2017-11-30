@@ -200,8 +200,8 @@ var m = {
 			resting: { 
 					weight: 3,
 					fillOpacity: 0.2,
-					color: '#00F',
-					fillColor: '#00F'
+					color: '#aaa',
+					fillColor: '#aaa'
 			},
 			active: { 
 					weight: 5,
@@ -234,7 +234,7 @@ var m = {
                                     layer.setStyle(m.layer_options.style.active);
                                 }
                                 else if ( r.guesses.length >= 3 ) {
-                                    // Do nothing, we've hit maximum guesses.
+                                    // Push the first one in the guesses off, make way
                                 }
                             }
                         });},
